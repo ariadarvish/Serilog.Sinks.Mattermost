@@ -37,8 +37,12 @@ jobs:
       - name: Run Unit Tests
         run: dotnet test --no-restore --verbosity normal
 
-      - name: Build & Pack Release
-        run: dotnet pack MattermostSink/Serilog.Sinks.Mattermost.csproj -c Release --no-restore
+      - name: Build Solution in Release Mode
+        run: dotnet build -c Release --no-restore
+      - name: Run Unit Tests
+        run: dotnet test -c Release --no-build --verbosity normal
+      - name: Pack NuGet Package
+        run: dotnet pack MattermostSink/Serilog.Sinks.Mattermost.csproj -c Release --no-build
 
       # -------------------------------------------------------------------
       # 1. Publish to GitHub Packages (Uses GITHUB_TOKEN - No API key needed)
