@@ -1,0 +1,62 @@
+name: Publish Package
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+permissions:
+  contents: read
+  packages: write     # Required for publishing to GitHub Packages without an API key
+  id-token: write    # Required for OIDC tokens
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for SourceLink to embed full Git commit history
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Run Unit Tests
+        run: dotnet test --no-restore --verbosity normal
+
+      - name: Build & Pack Release
+        run: dotnet pack MattermostSink/Serilog.Sinks.Mattermost.csproj -c Release --no-restore
+
+      # -------------------------------------------------------------------
+      # 1. Publish to GitHub Packages (Uses GITHUB_TOKEN - No API key needed)
+      # -------------------------------------------------------------------
+      - name: Publish to GitHub Packages
+        run: |
+          dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+          dotnet nuget push MattermostSink/bin/Release/*.nupkg --source github --skip-duplicate
+
+      # -------------------------------------------------------------------
+      # 2. Publish to NuGet.org (Uses GitHub Encrypted Secret)
+      # -------------------------------------------------------------------
+      - name: Publish to NuGet.org
+        if: env.NUGET_KEY_EXISTS == 'true'
+        env:
+          NUGET_KEY_EXISTS: ${{ secrets.NUGET_API_KEY != '' }}
+        run: |
+          dotnet nuget push MattermostSink/bin/Release/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
