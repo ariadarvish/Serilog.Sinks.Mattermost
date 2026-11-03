@@ -21,7 +21,10 @@
 		<NoWarn>$(NoWarn);1591;NU1902</NoWarn>
 
 		<!-- Source Link, Symbols & Deterministic Builds -->
-		<DebugType>embedded</DebugType>
+		<DebugType>portable</DebugType>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 		<Deterministic>true</Deterministic>
 		<ContinuousIntegrationBuild Condition="'$(Configuration)' == 'Release'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
