@@ -34,13 +34,12 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore
 
-      - name: Run Unit Tests
-        run: dotnet test --no-restore --verbosity normal
-
       - name: Build Solution in Release Mode
         run: dotnet build -c Release --no-restore
+
       - name: Run Unit Tests
         run: dotnet test -c Release --no-build --verbosity normal
+
       - name: Pack NuGet Package
         run: dotnet pack MattermostSink/Serilog.Sinks.Mattermost.csproj -c Release --no-build
 
